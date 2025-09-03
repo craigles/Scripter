@@ -6,23 +6,23 @@ function HandleMIDI(event)
 		case Pitch.C4:
 			notes = [
 				[
-					new Note(Pitch.E4, Time().Whole * 2),
-					new Note(Pitch.A4, Time().Whole),
+					new Note(Pitch.E4, Length.Whole * 2),
+					new Note(Pitch.A4, Length.Whole),
 				],
-				new Note(Pitch.Ab4, Time().Whole)
+				new Note(Pitch.Ab4, Length.Whole)
 			];
 		    break;
 		case Pitch.B3:
 			notes = [
 				[
-					new Note(Pitch.D4, Time().Whole),
-					new Note(Pitch.A3, Time().Whole),
-					new Note(Pitch.D3, Time().Whole)
+					new Note(Pitch.D4, Length.Whole),
+					new Note(Pitch.A3, Length.Whole),
+					new Note(Pitch.D3, Length.Whole)
 				],
 				[
-					new Note(Pitch.Db4, Time().Whole),
-					new Note(Pitch.Ab3, Time().Whole),
-					new Note(Pitch.Db3, Time().Whole)
+					new Note(Pitch.Db4, Length.Whole),
+					new Note(Pitch.Ab3, Length.Whole),
+					new Note(Pitch.Db3, Length.Whole)
 				],
 			];
 			break;
@@ -35,10 +35,10 @@ function HandleMIDI(event)
 
 class Note
 {
-	constructor(pitch, duration)
+	constructor(pitch, length)
 	{
 		this.pitch = pitch;
-		this.duration = duration;
+		this.length = length;
 	}
 	
 	play(startTime)
@@ -49,7 +49,14 @@ class Note
 
 		var nOff = new NoteOff;
 		nOff.pitch = this.pitch;
-		nOff.sendAfterMilliseconds(startTime + this.duration - GetParameter("Release"));
+		nOff.sendAfterMilliseconds(startTime + this.duration() - GetParameter("Release"));
+	}
+
+	duration()
+	{
+		var timingInfo = GetTimingInfo();
+		var barDuration = 60 / timingInfo.tempo * 1000 * timingInfo.meterNumerator;
+		return barDuration * this.length;
 	}
 }
 
@@ -66,33 +73,22 @@ class Sequencer
 
 		for (var note of this.notes)
 		{
-			if (Array.isArray(note))
-			{
-				note.forEach(n => n.play(currentTime));
-				var minDuration = Math.min(...note.map(n => n.duration));
-				currentTime += minDuration;
-			} 
-			else
-			{
-				note.play(currentTime);
-				currentTime += note.duration;
-			}
+			var chord = Array.isArray(note) ? note : [note];
+
+			chord.forEach(n => n.play(currentTime));
+			var minDuration = Math.min(...chord.map(n => n.duration()));
+			currentTime += minDuration;
 		}
 	}
 }
 
-function Time() {
-	var bpm = GetTimingInfo().tempo;
-	var quarter = 60 / bpm * 1000;
-	
-	return {
-		Whole: quarter * 4,
-		Half: quarter * 2,
-		Quarter: quarter,
-		Eighth: quarter / 2,
-		Sixteenth: quarter / 4,
-	};
-}
+var Length = {
+	Whole: 1,
+	Half: 1 / 2,
+	Quarter: 1 / 4,
+	Eighth: 1 / 8,
+	Sixteenth: 1 / 16,
+};
 
 var Pitch = {
 	C5: 72,
