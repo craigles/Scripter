@@ -53,7 +53,7 @@ class Note
 
 	beatDuration()
 	{
-		return this.length * GetTimingInfo().meterDenominator;
+		return this.length * GetTimingInfo().meterNumerator;
 	}
 }
 
