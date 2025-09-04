@@ -1,41 +1,33 @@
-function ResetTheInternet(event) {
-	switch (event.pitch) {
-		case Pitch.C4:
-			return [
-				[
-					new Note(Pitch.E4, Length.Double),
-					new Note(Pitch.A4, Length.Whole),
-				],
-				new Note(Pitch.Ab4, Length.Whole),
-			];
-		case Pitch.B3:
-			return [
-				[
-					new Note(Pitch.D4, Length.Whole),
-					new Note(Pitch.A3, Length.Whole),
-					new Note(Pitch.D3, Length.Whole)
-				],
-				[
-					new Note(Pitch.Db4, Length.Whole),
-					new Note(Pitch.Ab3, Length.Whole),
-					new Note(Pitch.Db3, Length.Whole)
-				],
-			];
-		default:
-			return [];
-	}
-}
+var riffs = {};
+riffs[Pitch.C4] = [
+	[
+		new Note(Pitch.E4, Length.Double),
+		new Note(Pitch.A4, Length.Whole),
+	],
+	new Note(Pitch.Ab4, Length.Whole)
+];
+riffs[Pitch.B3] = [
+	[
+		new Note(Pitch.D4, Length.Whole),
+		new Note(Pitch.A3, Length.Whole),
+		new Note(Pitch.D3, Length.Whole)
+	],
+	[
+		new Note(Pitch.Db4, Length.Whole),
+		new Note(Pitch.Ab3, Length.Whole),
+		new Note(Pitch.Db3, Length.Whole)
+	],
+];
 
 function HandleMIDI(event)
 {
-	var notes = ResetTheInternet(event);
+	var notes = riffs[event.pitch];
 
-	if (notes.length == 0) {
-			event.send();
-		return
+	if (notes) {
+		new Sequencer(notes).play(event.beatPos);
 	}
-	
-	new Sequencer(notes).play(event.beatPos);
+
+	event.send();
 }
 
 class Note
@@ -53,12 +45,12 @@ class Note
 		noteOn.sendAtBeat(beat);
 
 		var noteOff = new NoteOff(noteOn);
-		noteOff.sendAtBeat(beat + this.beatDuration() - GetParameter("Release"));
+		noteOff.sendAtBeat(beat + this.beatDuration());
 	}
 
 	beatDuration()
 	{
-		return this.length * GetTimingInfo().meterNumerator;
+		return this.length * GetTimingInfo().meterDenominator;
 	}
 }
 
@@ -137,10 +129,10 @@ var NeedsTimingInfo = true
 var PluginParameters = [
 	{
 		name: "Release", 
-		defaultValue: 0.5, 
+		defaultValue: 100, 
 		minValue: 0, 
-		maxValue: 1, 
-		numberOfSteps: 10,
+		maxValue: 1000, 
+		numberOfSteps: 100,
 		type: "lin"
 	}
 ];
