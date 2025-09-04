@@ -6,7 +6,7 @@ function ResetTheInternet(event) {
 					new Note(Pitch.E4, Length.Double),
 					new Note(Pitch.A4, Length.Whole),
 				],
-				new Note(Pitch.Ab4, Length.Whole)
+				new Note(Pitch.Ab4, Length.Whole),
 			];
 		case Pitch.B3:
 			return [
@@ -48,12 +48,12 @@ class Note
 		noteOn.sendAtBeat(beat);
 
 		var noteOff = new NoteOff(noteOn);
-		noteOff.sendAtBeat(beat + this.beatDuration());
+		noteOff.sendAtBeat(beat + this.beatDuration() - GetParameter("Release"));
 	}
 
 	beatDuration()
 	{
-		return this.length * GetTimingInfo().meterDenominator;
+		return this.length * GetTimingInfo().meterNumerator;
 	}
 }
 
@@ -132,10 +132,10 @@ var NeedsTimingInfo = true
 var PluginParameters = [
 	{
 		name: "Release", 
-		defaultValue: 100, 
+		defaultValue: 0.5, 
 		minValue: 0, 
-		maxValue: 1000, 
-		numberOfSteps: 100,
+		maxValue: 1, 
+		numberOfSteps: 10,
 		type: "lin"
 	}
 ];
