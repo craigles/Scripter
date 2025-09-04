@@ -1,32 +1,36 @@
-function Songs() {
-	return {
-		"C4": [
-			[
-				new Note("E3", Length.Double),
-				new Note("A3", Length.Whole),
-			],
-			new Note("G#3", Length.Whole),
-		],
-		"B3": [
-			[
-				new Note("D3", Length.Whole),
-				new Note("A2", Length.Whole),
-				new Note("D2", Length.Whole)
-			],
-			[
-				new Note("C#3", Length.Whole),
-				new Note("G#2", Length.Whole),
-				new Note("C#2", Length.Whole)
-			],
-		]
-	};
+function Songs(noteName) {
+	switch (noteName) {
+		case "C4":
+			return [
+				[
+					new Note("E3", Length.Double),
+					new Note("A3", Length.Whole),
+				],
+				new Note("G#3", Length.Whole),
+			];
+		case "B3":
+			return [
+				[
+					new Note("D3", Length.Whole),
+					new Note("A2", Length.Whole),
+					new Note("D2", Length.Whole)
+				],
+				[
+					new Note("C#3", Length.Whole),
+					new Note("G#2", Length.Whole),
+					new Note("C#2", Length.Whole)
+				],
+			];
+		default:
+			return [];
+	}
 };
 
 function HandleMIDI(event)
 {
-	var notes = Songs()[MIDI.noteName(event.pitch)];
+	var notes = Songs(MIDI.noteName(event.pitch));
 
-	if (notes) {
+	if (notes.length > 0) {
 		new Sequencer(notes).play(event.beatPos);
 		return
 	}
