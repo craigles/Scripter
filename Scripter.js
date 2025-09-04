@@ -6,7 +6,7 @@ function HandleMIDI(event)
 		case Pitch.C4:
 			notes = [
 				[
-					new Note(Pitch.E4, Length.Whole * 2),
+					new Note(Pitch.E4, Length.Double),
 					new Note(Pitch.A4, Length.Whole),
 				],
 				new Note(Pitch.Ab4, Length.Whole)
@@ -30,7 +30,7 @@ function HandleMIDI(event)
 			event.send();
 	}
 			
-	new Sequencer(notes).play();
+	new Sequencer(notes).play(event.beatPos);
 }
 
 class Note
@@ -41,22 +41,19 @@ class Note
 		this.length = length;
 	}
 	
-	play(startTime)
+	play(beat)
 	{
-		var n = new NoteOn;
-		n.pitch = this.pitch;
-		n.sendAfterMilliseconds(startTime);
+		var noteOn = new NoteOn;
+		noteOn.pitch = this.pitch;
+		noteOn.sendAtBeat(beat);
 
-		var nOff = new NoteOff;
-		nOff.pitch = this.pitch;
-		nOff.sendAfterMilliseconds(startTime + this.duration() - GetParameter("Release"));
+		var noteOff = new NoteOff(noteOn);
+		noteOff.sendAtBeat(beat + this.beatDuration());
 	}
 
-	duration()
+	beatDuration()
 	{
-		var timingInfo = GetTimingInfo();
-		var barDuration = 60 / timingInfo.tempo * 1000 * timingInfo.meterNumerator;
-		return barDuration * this.length;
+		return this.length * GetTimingInfo().meterDenominator;
 	}
 }
 
@@ -67,22 +64,23 @@ class Sequencer
 		this.notes = notes;
 	}
 	
-	play()
+	play(beatPosition)
 	{
-		var currentTime = 0;
+		var currentBeat = beatPosition;
 
 		for (var note of this.notes)
 		{
 			var chord = Array.isArray(note) ? note : [note];
 
-			chord.forEach(n => n.play(currentTime));
-			var minDuration = Math.min(...chord.map(n => n.duration()));
-			currentTime += minDuration;
+			chord.forEach(n => n.play(currentBeat));
+			var minDuration = Math.min(...chord.map(n => n.beatDuration()));
+			currentBeat += minDuration;
 		}
 	}
 }
 
 var Length = {
+	Double: 2,
 	Whole: 1,
 	Half: 1 / 2,
 	Quarter: 1 / 4,
@@ -131,13 +129,3 @@ var Pitch = {
 }
 
 var NeedsTimingInfo = true
-var PluginParameters = [
-	{
-		name: "Release", 
-		defaultValue: 100, 
-		minValue: 0, 
-		maxValue: 1000, 
-		numberOfSteps: 100,
-		type: "lin"
-	}
-];
