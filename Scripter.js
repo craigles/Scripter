@@ -1,19 +1,15 @@
-function HandleMIDI(event)
-{
-	var notes = [];
-
+function ResetTheInternet(event) {
 	switch (event.pitch) {
 		case Pitch.C4:
-			notes = [
+			return [
 				[
 					new Note(Pitch.E4, Length.Double),
 					new Note(Pitch.A4, Length.Whole),
 				],
 				new Note(Pitch.Ab4, Length.Whole)
 			];
-		    break;
 		case Pitch.B3:
-			notes = [
+			return [
 				[
 					new Note(Pitch.D4, Length.Whole),
 					new Note(Pitch.A3, Length.Whole),
@@ -25,11 +21,15 @@ function HandleMIDI(event)
 					new Note(Pitch.Db3, Length.Whole)
 				],
 			];
-			break;
 		default:
 			event.send();
+			return [];
 	}
-			
+}
+
+function HandleMIDI(event)
+{
+	var notes = ResetTheInternet(event);
 	new Sequencer(notes).play(event.beatPos);
 }
 
@@ -53,7 +53,7 @@ class Note
 
 	beatDuration()
 	{
-		return this.length * GetTimingInfo().meterNumerator;
+		return this.length * GetTimingInfo().meterDenominator;
 	}
 }
 
@@ -129,3 +129,13 @@ var Pitch = {
 }
 
 var NeedsTimingInfo = true
+var PluginParameters = [
+	{
+		name: "Release", 
+		defaultValue: 100, 
+		minValue: 0, 
+		maxValue: 1000, 
+		numberOfSteps: 100,
+		type: "lin"
+	}
+];
