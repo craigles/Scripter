@@ -25,6 +25,7 @@ function HandleMIDI(event)
 
 	if (notes) {
 		new Sequencer(notes).play(event.beatPos);
+		return;
 	}
 
 	event.send();
