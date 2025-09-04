@@ -22,7 +22,6 @@ function ResetTheInternet(event) {
 				],
 			];
 		default:
-			event.send();
 			return [];
 	}
 }
@@ -30,6 +29,12 @@ function ResetTheInternet(event) {
 function HandleMIDI(event)
 {
 	var notes = ResetTheInternet(event);
+
+	if (notes.length == 0) {
+			event.send();
+		return
+	}
+	
 	new Sequencer(notes).play(event.beatPos);
 }
 
